@@ -31,12 +31,15 @@ search for "/aws/lambda/Group11ReviewProcessor", and open the most recent Log st
 ### How to delete
 1. To delete all AWS resources created, run the following command:
 
-```aws cloudformation delete-stack --stack-name Sentiment-Analysis```
+```
+aws cloudformation delete-stack --stack-name Sentiment-Analysis
+```
 
 2. To delete the CloudWatch logs:
 
-```aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"
-aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"```
+```aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"```
+```aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"```
+
 
 -----
 
