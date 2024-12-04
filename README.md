@@ -11,9 +11,9 @@ This project allows people to enter reviews and it will tell you if the review i
 
 2. Run cloudformation command using aws cli
 
-```aws cloudformation deploy --template-file template.yaml --stack-name Sentiment_Analysis --capabilities CAPABILITY_NAMED_IAM```
+```aws cloudformation deploy --template-file template.yaml --stack-name Sentiment-Analysis --capabilities CAPABILITY_NAMED_IAM```
 
-3. In the AWS console, go to Cloudformation and search for `Sentiment_Analysis`
+3. In the AWS console, go to Cloudformation and search for `Sentiment-Analysis`
 
 ```https://console.aws.amazon.com/cloudformation/home```
 
@@ -24,7 +24,7 @@ This project allows people to enter reviews and it will tell you if the review i
 ### How to delete
 1. To delete all AWS resources created, run the following command:
 
-```aws cloudformation delete-stack --stack-name Sentiment_Analysis```
+```aws cloudformation delete-stack --stack-name Sentiment-Analysis```
 
 ### Group 11 Members
 * Anson Lu
