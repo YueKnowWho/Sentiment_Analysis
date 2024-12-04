@@ -114,13 +114,28 @@ Resources:
                         sentiment = comprehend.detect_sentiment(Text=text, LanguageCode='en')
                         review_id = str(uuid.uuid4())
 
+                        # Extract sentiment scores
+                        sentiment_scores = sentiment['SentimentScore']
+                        positive = sentiment_scores.get('Positive', 0)
+                        negative = sentiment_scores.get('Negative', 0)
+                        neutral = sentiment_scores.get('Neutral', 0)
+                        mixed = sentiment_scores.get('Mixed', 0)
+
+                        # Find the dominant sentiment (highest score)
+                        dominant_sentiment_score = max(positive, negative, neutral, mixed)
+                        
+                        # Normalize confidence score to be between 0 and 1 based on the highest sentiment score
+                        confidence_score = dominant_sentiment_score
+
+                        # Store review, sentiment, sentiment scores, and confidence in DynamoDB
                         dynamodb.put_item(
                             TableName='Group11Reviews',
                             Item={
                                 'reviewId': {'S': review_id},
                                 'text': {'S': text},
                                 'sentiment': {'S': sentiment['Sentiment']},
-                                'sentimentScore': {'S': json.dumps(sentiment['SentimentScore'])}
+                                'sentimentScore': {'S': json.dumps(sentiment_scores)},  # Full sentiment scores
+                                'confidence': {'N': str(confidence_score)}  # Normalized confidence score
                             }
                         )
 
