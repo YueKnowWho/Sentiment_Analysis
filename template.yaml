@@ -105,12 +105,21 @@ Resources:
                     import boto3
                     import uuid
                     import json
+                    import logging
+
+                    # Set up logging
+                    logger = logging.getLogger()
+                    logger.setLevel(logging.INFO)
 
                     comprehend = boto3.client('comprehend')
                     dynamodb = boto3.client('dynamodb')
 
                     def lambda_handler(event, context):
                         text = json.loads(event['body'])['text']
+
+                        # Log user input for debugging/auditing
+                        logger.info(f"User input received: {text}")
+
                         sentiment = comprehend.detect_sentiment(Text=text, LanguageCode='en')
                         review_id = str(uuid.uuid4())
 
@@ -120,6 +129,9 @@ Resources:
                         negative = sentiment_scores.get('Negative', 0)
                         neutral = sentiment_scores.get('Neutral', 0)
                         mixed = sentiment_scores.get('Mixed', 0)
+
+                        # Log sentiment analysis results
+                        logger.info(f"Sentiment analysis result: {sentiment}")
 
                         # Find the dominant sentiment (highest score)
                         dominant_sentiment_score = max(positive, negative, neutral, mixed)
