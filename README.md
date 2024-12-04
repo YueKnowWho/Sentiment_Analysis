@@ -38,6 +38,7 @@ aws cloudformation delete-stack --stack-name Sentiment-Analysis
 2. To delete the CloudWatch logs:
 
 ```aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"```
+
 ```aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"```
 
 
