@@ -7,15 +7,21 @@ This project allows people to enter reviews and it will tell you if the review i
 ### How to run
 1. Clone and cd into repository
 
-```git clone https://github.com/YueKnowWho/Sentiment_Analysis.git && cd Sentiment_Analysis```
+```
+git clone https://github.com/YueKnowWho/Sentiment_Analysis.git && cd Sentiment_Analysis
+```
 
-2. Run CloudFormation command using aws cli
+2. Run CloudFormation command using AWS CLI
 
-```aws cloudformation deploy --template-file template.yaml --stack-name Sentiment-Analysis --capabilities CAPABILITY_NAMED_IAM```
+```
+aws cloudformation deploy --template-file template.yaml --stack-name Sentiment-Analysis --capabilities CAPABILITY_NAMED_IAM
+```
 
 3. In the AWS console, go to Cloudformation and search for `Sentiment-Analysis`
 
-```https://console.aws.amazon.com/cloudformation/home```
+```
+https://console.aws.amazon.com/cloudformation/home
+```
 
 4. Click on "Outputs" tab
 
@@ -23,7 +29,9 @@ This project allows people to enter reviews and it will tell you if the review i
 
 6. To view CloudWatch logs, go to the following link:
 
-```https://console.aws.amazon.com/cloudwatch/home```
+```
+https://console.aws.amazon.com/cloudwatch/home
+```
 
 search for "/aws/lambda/Group11ReviewProcessor", and open the most recent Log stream
 
@@ -37,9 +45,10 @@ aws cloudformation delete-stack --stack-name Sentiment-Analysis
 
 2. To delete the CloudWatch logs:
 
-```aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"```
-
-```aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"```
+```
+aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"
+aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"
+```
 
 
 -----
