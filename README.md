@@ -11,19 +11,24 @@ This project allows people to enter reviews and it will tell you if the review i
 
 2. Run cloudformation command using aws cli
 
-```aws cloudformation deploy --template-file template.yaml --stack-name Group11FinalProjectv2 --capabilities CAPABILITY_NAMED_IAM```
+```aws cloudformation deploy --template-file template.yaml --stack-name Sentiment_Analysis --capabilities CAPABILITY_NAMED_IAM```
 
-3. In the aws console, go to Cloudformation and search for `Group11FinalProjectv2`
+3. In the AWS console, go to Cloudformation and search for `Sentiment_Analysis`
 
-4. Click on Outputs
+```https://console.aws.amazon.com/cloudformation/home```
 
-5. Click on the WebsiteURL value. This should take you to the website.
+4. Click on "Outputs" tab
+
+5. Click on the "WebsiteURL" link. This should take you to the website.
 
 ### How to delete
-1. ```aws cloudformation delete-stack --stack-name Group11FinalProjectv2```
+1. To delete all AWS resources created, run the following command:
+```aws cloudformation delete-stack --stack-name Sentiment_Analysis```
 
 ### Group 11 Members
 * Anson Lu
 * Jason Li
 * Jonathan Yue
 * Jeffrey Chan
+
+Date: 12/4/2024
