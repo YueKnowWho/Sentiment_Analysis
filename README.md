@@ -2,7 +2,7 @@
 This project allows people to enter reviews and it will tell you if the review is a positive or negative review.
 
 ### Requirements
-1. aws cli 
+1. AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ### How to run
 1. Clone and cd into repository
@@ -38,6 +38,7 @@ search for "/aws/lambda/Group11ReviewProcessor", and open the most recent Log st
 ```aws logs delete-log-group --log-group-name "/aws/lambda/Group11ReviewProcessor"
 aws logs delete-log-group --log-group-name "/aws/lambda/Group11WebsiteLambdaFunction"```
 
+-----
 
 ### Group 11 Members
 * Anson Lu
