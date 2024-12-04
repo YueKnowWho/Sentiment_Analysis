@@ -23,6 +23,7 @@ This project allows people to enter reviews and it will tell you if the review i
 
 ### How to delete
 1. To delete all AWS resources created, run the following command:
+
 ```aws cloudformation delete-stack --stack-name Sentiment_Analysis```
 
 ### Group 11 Members
