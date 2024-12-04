@@ -1,250 +1,272 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: Group 11 CloudFormation, Sentiment Analysis for Reviews
 
 Resources:
-  # Lambda Function to Serve HTML Content
-  WebsiteLambdaFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: Group11WebsiteLambdaFunction
-      Runtime: python3.9
-      Handler: index.lambda_handler
-      Code:
-        ZipFile: |
-          import boto3
-          import json
+    # Lambda Function to Serve HTML Content
+    WebsiteLambdaFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            FunctionName: Group11WebsiteLambdaFunction
+            Runtime: python3.9
+            Handler: index.lambda_handler
+            Code:
+                ZipFile: |
+                    import boto3
+                    import json
 
-          dynamodb = boto3.client('dynamodb')
+                    dynamodb = boto3.client('dynamodb')
 
-          def lambda_handler(event, context):
-              # Query DynamoDB to get previous sentiments
-              response = dynamodb.scan(TableName='Group11Reviews')
-              items = response.get('Items', [])
+                    def lambda_handler(event, context):
+                            # Query DynamoDB to get previous sentiments
+                            response = dynamodb.scan(TableName='Group11Reviews')
+                            items = response.get('Items', [])
 
-              # Generate HTML content with previous sentiments
-              previous_sentiments_html = ""
-              for item in items:
-                sentiment_score = json.loads(item['sentimentScore']['S'])  # Parse JSON string
-                previous_sentiments_html += f"""
-                <p>Review: {item['text']['S']} - Sentiment: {item['sentiment']['S']}
-                (Positive: {sentiment_score['Positive']:.2f}, 
-                Negative: {sentiment_score['Negative']:.2f}, 
-                Neutral: {sentiment_score['Neutral']:.2f}, 
-                Mixed: {sentiment_score['Mixed']:.2f})
-                </p>
-                """
+                            # Generate HTML content with previous sentiments
+                            previous_sentiments_html = ""
+                            for item in items:
+                                sentiment_score = json.loads(item['sentimentScore']['S'])
+                                confidence = float(item.get('confidence', {}).get('N', 0))
+                                previous_sentiments_html += f"""
+                                <p>
+                                  Review: {item['text']['S']}<br>
+                                  Sentiment: {item['sentiment']['S']} (Confidence: {confidence:.2f})<br>
+                                  Scores - Positive: {sentiment_score['Positive']:.2f}, 
+                                  Negative: {sentiment_score['Negative']:.2f}, 
+                                  Neutral: {sentiment_score['Neutral']:.2f}, 
+                                  Mixed: {sentiment_score['Mixed']:.2f}
+                                </p>
+                                """
 
-              html_content = f"""
-              <!DOCTYPE html>
-              <html lang="en">
-                <head>
-                  <meta charset="UTF-8" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                  <title>Sentiment Analysis</title>
-                  <link rel="stylesheet" href="styles.css" />
-                </head>
-                <body>
-                  <header>
-                    <h1>Sentiment Analysis</h1>
-                  </header>
-                  <main>
-                    <section id="input-section">
-                      <h2>Enter Text</h2>
-                      <textarea id="input-text" rows="10" cols="50"></textarea>
-                      <button id="analyze-button">Analyze Sentiment</button>
-                    </section>
-                    <section id="previous-sentiments">
-                      <h2>Previous Review Sentiments</h2>
-                      {previous_sentiments_html}
-                    </section>
-                  </main>
-                  <script>
-                    document.getElementById('analyze-button').addEventListener('click', async () => {{
-                      const text = document.getElementById('input-text').value;
-                      const response = await fetch('/reviews', {{
-                        method: 'POST',
-                        headers: {{
-                          'Content-Type': 'application/json'
-                        }},
-                        body: JSON.stringify({{ text }})
-                      }});
-                      const result = await response;
-                      window.location.reload();
-                    }});
-                  </script>
-                </body>
-              </html>
-              """
-              return {
-                  'statusCode': 200,
-                  'headers': {
-                      'Content-Type': 'text/html',
-                      'Access-Control-Allow-Origin': '*'
-                  },
-                  'body': html_content
-              }
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Timeout: 15
+                            html_content = f"""
+                            <!DOCTYPE html>
+                            <html lang="en">
+                              <head>
+                                <meta charset="UTF-8" />
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                                <title>Sentiment Analysis</title>
+                                <link rel="stylesheet" href="styles.css" />
+                              </head>
+                              <body>
+                                <header>
+                                  <h1>Sentiment Analysis</h1>
+                                </header>
+                                <main>
+                                  <section id="input-section">
+                                    <h2>Enter Text</h2>
+                                    <textarea id="input-text" rows="10" cols="50"></textarea>
+                                    <button id="analyze-button">Analyze Sentiment</button>
+                                  </section>
+                                  <section id="previous-sentiments">
+                                    <h2>Previous Review Sentiments</h2>
+                                    {previous_sentiments_html}
+                                  </section>
+                                </main>
+                                <script>
+                                  document.getElementById('analyze-button').addEventListener('click', async () => {{
+                                    const text = document.getElementById('input-text').value;
+                                    const response = await fetch('/reviews', {{
+                                      method: 'POST',
+                                      headers: {{
+                                        'Content-Type': 'application/json'
+                                      }},
+                                      body: JSON.stringify({{ text }})
+                                    }});
+                                    if (response.ok) {{
+                                      window.location.reload();
+                                    }} else {{
+                                      alert("Error submitting review");
+                                    }}
+                                  }});
+                                </script>
+                              </body>
+                            </html>
+                            """
 
-  # Lambda Function to Process Reviews
-  ReviewProcessorFunction:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: Group11ReviewProcessor
-      Runtime: python3.9
-      Handler: index.lambda_handler
-      Code:
-        ZipFile: |
-          import boto3
-          import uuid
-          import json
+                            return {
+                                'statusCode': 200,
+                                'headers': {
+                                    'Content-Type': 'text/html',
+                                    'Access-Control-Allow-Origin': '*'
+                                },
+                                'body': html_content
+                            }
+            Role: !GetAtt LambdaExecutionRole.Arn
+            Timeout: 15
 
-          comprehend = boto3.client('comprehend')
-          dynamodb = boto3.client('dynamodb')
+    # Lambda Function to Process Reviews
+    ReviewProcessorFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            FunctionName: Group11ReviewProcessor
+            Runtime: python3.9
+            Handler: index.lambda_handler
+            Code:
+                ZipFile: |
+                    import boto3
+                    import uuid
+                    import json
 
-          def lambda_handler(event, context):
-              text = json.loads(event['body'])['text']
-              sentiment = comprehend.detect_sentiment(Text=text, LanguageCode='en')
-              review_id = str(uuid.uuid4())
+                    comprehend = boto3.client('comprehend')
+                    dynamodb = boto3.client('dynamodb')
 
-              dynamodb.put_item(
-                  TableName='Group11Reviews',
-                  Item={
-                      'reviewId': {'S': review_id},
-                      'text': {'S': text},
-                      'sentiment': {'S': sentiment['Sentiment']},
-                      'sentimentScore': {'S': json.dumps(sentiment['SentimentScore'])}
-                  }
-              )
+                    def lambda_handler(event, context):
+                        text = json.loads(event['body'])['text']
+                        sentiment = comprehend.detect_sentiment(Text=text, LanguageCode='en')
+                        review_id = str(uuid.uuid4())
 
-              return {
-                  'statusCode': 200,
-                  'body': f"Review stored with sentiment: {sentiment['Sentiment']}",
-                  'headers': {
-                      'Access-Control-Allow-Origin': '*',
-                      'Access-Control-Allow-Headers': 'Content-Type',
-                      'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-                  }
-              }
+                        # Extract sentiment scores
+                        sentiment_scores = sentiment['SentimentScore']
+                        positive = sentiment_scores.get('Positive', 0)
+                        negative = sentiment_scores.get('Negative', 0)
+                        neutral = sentiment_scores.get('Neutral', 0)
+                        mixed = sentiment_scores.get('Mixed', 0)
 
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Timeout: 15
+                        # Find the dominant sentiment (highest score)
+                        dominant_sentiment_score = max(positive, negative, neutral, mixed)
+                        
+                        # Normalize confidence score to be between 0 and 1 based on the highest sentiment score
+                        confidence_score = dominant_sentiment_score
 
-  # IAM Role for Lambda
-  LambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: Group11LambdaPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                  - dynamodb:PutItem
-                  - dynamodb:GetItem
-                  - dynamodb:Scan
-                  - comprehend:DetectSentiment
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
+                        # Store review, sentiment, sentiment scores, and confidence in DynamoDB
+                        dynamodb.put_item(
+                            TableName='Group11Reviews',
+                            Item={
+                                'reviewId': {'S': review_id},
+                                'text': {'S': text},
+                                'sentiment': {'S': sentiment['Sentiment']},
+                                'sentimentScore': {'S': json.dumps(sentiment_scores)},  # Full sentiment scores
+                                'confidence': {'N': str(confidence_score)}  # Normalized confidence score
+                            }
+                        )
 
-  # DynamoDB Table for Storing Reviews and Sentiment
-  ReviewsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: Group11Reviews
-      AttributeDefinitions:
-        - AttributeName: reviewId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: reviewId
-          KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
+                        return {
+                            'statusCode': 200,
+                            'body': f"Review stored with sentiment: {sentiment['Sentiment']}",
+                            'headers': {
+                                'Access-Control-Allow-Origin': '*',
+                                'Access-Control-Allow-Headers': 'Content-Type',
+                                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                            }
+                        }
 
-  # API Gateway for Serving Website and Processing Reviews
-  ApiGateway:
-    Type: AWS::ApiGatewayV2::Api
-    Properties:
-      Name: Group11SentimentAnalysisApi
-      ProtocolType: HTTP
+            Role: !GetAtt LambdaExecutionRole.Arn
+            Timeout: 15
 
-  # Integration for Website Lambda Function
-  WebsiteApiGatewayIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref ApiGateway
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebsiteLambdaFunction.Arn}/invocations"
-      PayloadFormatVersion: "2.0"
+    # IAM Role for Lambda
+    LambdaExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: Group11LambdaPolicy
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - lambda:InvokeFunction
+                                - dynamodb:PutItem
+                                - dynamodb:GetItem
+                                - dynamodb:Scan
+                                - comprehend:DetectSentiment
+                            Resource: "*"
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
 
-  # Integration for Review Processor Lambda Function
-  ReviewApiGatewayIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref ApiGateway
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReviewProcessorFunction.Arn}/invocations"
-      PayloadFormatVersion: "2.0"
+    # DynamoDB Table for Storing Reviews and Sentiment
+    ReviewsTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: Group11Reviews
+            AttributeDefinitions:
+                - AttributeName: reviewId
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: reviewId
+                  KeyType: HASH
+            BillingMode: PAY_PER_REQUEST
 
-  # Route for Serving Website
-  WebsiteApiGatewayRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref ApiGateway
-      RouteKey: "GET /"
-      Target: !Sub "integrations/${WebsiteApiGatewayIntegration.IntegrationId}"
+    # API Gateway for Serving Website and Processing Reviews
+    ApiGateway:
+        Type: AWS::ApiGatewayV2::Api
+        Properties:
+            Name: Group11SentimentAnalysisApi
+            ProtocolType: HTTP
 
-  # Route for Processing Reviews
-  ReviewApiGatewayRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref ApiGateway
-      RouteKey: "POST /reviews"
-      Target: !Sub "integrations/${ReviewApiGatewayIntegration.IntegrationId}"
+    # Integration for Website Lambda Function
+    WebsiteApiGatewayIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties:
+            ApiId: !Ref ApiGateway
+            IntegrationType: AWS_PROXY
+            IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebsiteLambdaFunction.Arn}/invocations"
+            PayloadFormatVersion: "2.0"
 
-  # Stage for API Gateway
-  ApiGatewayStage:
-    Type: AWS::ApiGatewayV2::Stage
-    Properties:
-      ApiId: !Ref ApiGateway
-      StageName: $default
-      AutoDeploy: true
+    # Integration for Review Processor Lambda Function
+    ReviewApiGatewayIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties:
+            ApiId: !Ref ApiGateway
+            IntegrationType: AWS_PROXY
+            IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ReviewProcessorFunction.Arn}/invocations"
+            PayloadFormatVersion: "2.0"
 
-  # Permissions for API Gateway to Invoke Lambda Functions
-  LambdaPermissionForWebsiteApiGateway:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref WebsiteLambdaFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway.ApiId}/*"
+    # Route for Serving Website
+    WebsiteApiGatewayRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties:
+            ApiId: !Ref ApiGateway
+            RouteKey: "GET /"
+            Target: !Sub "integrations/${WebsiteApiGatewayIntegration.IntegrationId}"
 
-  LambdaPermissionForReviewApiGateway:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref ReviewProcessorFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway.ApiId}/*"
+    # Route for Processing Reviews
+    ReviewApiGatewayRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties:
+            ApiId: !Ref ApiGateway
+            RouteKey: "POST /reviews"
+            Target: !Sub "integrations/${ReviewApiGatewayIntegration.IntegrationId}"
+
+    # Stage for API Gateway
+    ApiGatewayStage:
+        Type: AWS::ApiGatewayV2::Stage
+        Properties:
+            ApiId: !Ref ApiGateway
+            StageName: $default
+            AutoDeploy: true
+
+    # Permissions for API Gateway to Invoke Lambda Functions
+    LambdaPermissionForWebsiteApiGateway:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref WebsiteLambdaFunction
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway.ApiId}/*"
+
+    LambdaPermissionForReviewApiGateway:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref ReviewProcessorFunction
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway.ApiId}/*"
 
 Outputs:
-  WebsiteURL:
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
-    Description: URL of the Lambda website
+    WebsiteURL:
+        Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
+        Description: URL of the Lambda website
 
-  ReviewApiEndpoint:
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/reviews"
-    Description: API Gateway endpoint to submit reviews
+    ReviewApiEndpoint:
+        Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/reviews"
+        Description: API Gateway endpoint to submit reviews
