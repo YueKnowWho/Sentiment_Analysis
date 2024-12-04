@@ -2,7 +2,7 @@
 This project allows people to enter reviews and it will tell you if the review is a positive or negative review.
 
 ### Requirements
-1. aws cli 
+1. AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ### How to run
 1. Clone and cd into repository
@@ -25,6 +25,8 @@ This project allows people to enter reviews and it will tell you if the review i
 1. To delete all AWS resources created, run the following command:
 
 ```aws cloudformation delete-stack --stack-name Sentiment-Analysis```
+
+-----
 
 ### Group 11 Members
 * Anson Lu
