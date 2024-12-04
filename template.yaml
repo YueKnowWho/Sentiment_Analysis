@@ -24,7 +24,15 @@ Resources:
               # Generate HTML content with previous sentiments
               previous_sentiments_html = ""
               for item in items:
-                previous_sentiments_html += f"<p>Review: {item['text']['S']} - Sentiment: {item['sentiment']['S']}</p>"
+                sentiment_score = json.loads(item['sentimentScore']['S'])  # Parse JSON string
+                previous_sentiments_html += f"""
+                <p>Review: {item['text']['S']} - Sentiment: {item['sentiment']['S']}
+                (Positive: {sentiment_score['Positive']:.2f}, 
+                Negative: {sentiment_score['Negative']:.2f}, 
+                Neutral: {sentiment_score['Neutral']:.2f}, 
+                Mixed: {sentiment_score['Mixed']:.2f})
+                </p>
+                """
 
               html_content = f"""
               <!DOCTYPE html>
@@ -104,7 +112,8 @@ Resources:
                   Item={
                       'reviewId': {'S': review_id},
                       'text': {'S': text},
-                      'sentiment': {'S': sentiment['Sentiment']}
+                      'sentiment': {'S': sentiment['Sentiment']},
+                      'sentimentScore': {'S': json.dumps(sentiment['SentimentScore'])}
                   }
               )
 
