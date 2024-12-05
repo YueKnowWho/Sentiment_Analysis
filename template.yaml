@@ -25,11 +25,10 @@ Resources:
                             previous_sentiments_html = ""
                             for item in items:
                                 sentiment_score = json.loads(item['sentimentScore']['S'])
-                                confidence = float(item.get('confidence', {}).get('N', 0))
                                 previous_sentiments_html += f"""
                                 <p>
                                   Review: {item['text']['S']}<br>
-                                  Sentiment: {item['sentiment']['S']} (Confidence: {confidence:.2f})<br>
+                                  Sentiment: {item['sentiment']['S']}<br>
                                   Scores - Positive: {sentiment_score['Positive']:.2f}, 
                                   Negative: {sentiment_score['Negative']:.2f}, 
                                   Neutral: {sentiment_score['Neutral']:.2f}, 
@@ -133,12 +132,6 @@ Resources:
                         # Log sentiment analysis results
                         logger.info(f"Sentiment analysis result: {sentiment}")
 
-                        # Find the dominant sentiment (highest score)
-                        dominant_sentiment_score = max(positive, negative, neutral, mixed)
-                        
-                        # Normalize confidence score to be between 0 and 1 based on the highest sentiment score
-                        confidence_score = dominant_sentiment_score
-
                         # Store review, sentiment, sentiment scores, and confidence in DynamoDB
                         dynamodb.put_item(
                             TableName='Group11Reviews',
@@ -147,7 +140,6 @@ Resources:
                                 'text': {'S': text},
                                 'sentiment': {'S': sentiment['Sentiment']},
                                 'sentimentScore': {'S': json.dumps(sentiment_scores)},  # Full sentiment scores
-                                'confidence': {'N': str(confidence_score)}  # Normalized confidence score
                             }
                         )
 
